@@ -25,6 +25,7 @@ import model
 import time
 import csv
 import tracemalloc
+import os
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -35,6 +36,7 @@ def new_controller():
     """
     Crea una instancia del modelo
     """
+    
     #TODO: Llamar la función del modelo que crea las estructuras de datos
     pass
 
@@ -45,6 +47,28 @@ def load_data(control, filename):
     """
     Carga los datos del reto
     """
+    """
+    Carga los datos de los archivos CSV en el modelo.
+    Se crea un arco entre cada par de aeropuertos que
+    pertenecen al mismo tipo de vuelo y van en el mismo sentido.
+
+    addRouteConnections crea conexiones entre diferentes vuelos
+    servidos en un mismo aeropuerto.
+    """
+    flights_file = cf.data_dir + flights_file
+    jobsFilename = os.path.join(cf.data_dir + 'airports-2022.csv')
+    input_file = csv.DictReader(open(jobsFilename, encoding='utf-8'),delimiter=';', restval='Unknown')
+    
+    last_flight = None
+    for flight in input_file:
+        if last_flight is not None:
+            same_flight_type = last_flight['TIPO_VUELO'] == flight['TIPO_VUELO']
+            same_direction = last_flight['ORIGEN'] == flight['ORIGEN']
+            if same_flight_type and same_direction:
+                model.addAirportConnection(control, last_flight, flight)
+        last_flight = flight
+    model.addRouteConnections(control)
+    return control
     # TODO: Realizar la carga de datos
     pass
 

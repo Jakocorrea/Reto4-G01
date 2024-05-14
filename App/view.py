@@ -31,6 +31,7 @@ from DISClib.DataStructures import mapentry as me
 assert cf
 from tabulate import tabulate
 import traceback
+import threading
 
 """
 La vista se encarga de la interacción con el usuario
@@ -66,6 +67,8 @@ def load_data(control):
     """
     Carga los datos
     """
+    carga = load_data(control)
+    return carga
     #TODO: Realizar la carga de datos
     pass
 
@@ -144,6 +147,8 @@ def print_req_8(control):
 # Se crea el controlador asociado a la vista
 control = new_controller()
 
+default_limit = 1000
+
 # main del reto
 if __name__ == "__main__":
     """
@@ -157,6 +162,7 @@ if __name__ == "__main__":
         if int(inputs) == 1:
             print("Cargando información de los archivos ....\n")
             data = load_data(control)
+            
         elif int(inputs) == 2:
             print_req_1(control)
 
@@ -188,3 +194,10 @@ if __name__ == "__main__":
         else:
             print("Opción errónea, vuelva a elegir.\n")
     sys.exit(0)
+
+if __name__ == "__main__":
+    threading.stack_size(67108864*2) # 128MB stack
+    sys.setrecursionlimit(default_limit*1000000)
+    thread = threading.Thread(target=menu_cycle)
+    thread.start()
+    

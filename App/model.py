@@ -46,6 +46,9 @@ from DISClib.Algorithms.Sorting import insertionsort as ins
 from DISClib.Algorithms.Sorting import selectionsort as se
 from DISClib.Algorithms.Sorting import mergesort as merg
 from DISClib.Algorithms.Sorting import quicksort as quk
+from DISClib.ADT import map as m
+from DISClib.ADT import list as lt
+from DISClib.Utils import error as error
 assert cf
 
 """
@@ -56,14 +59,167 @@ dos listas, una para los videos, otra para las categorias de los mismos.
 # Construccion de modelos
 
 
-def new_data_structs():
-    """
-    Inicializa las estructuras de datos del modelo. Las crea de
-    manera vacía para posteriormente almacenar la información.
-    """
-    #TODO: Inicializar las estructuras de datos
-    pass
+def newAnalyzer():
+    """Inicializa el analizador
 
+    airports: Tabla de hash para guardar los vértices del grafo
+    connections: Grafo para representar las rutas entre aeropuertos
+    components: Almacena la información de los componentes conectados
+    paths: Estructura que almacena los caminos de costo mínimo desde un
+           vértice determinado a todos los otros vértices del grafo
+    """
+    try:
+        analyzer = {
+            'airports': None,
+            'connections': None,
+            'components': None,
+            'paths': None
+        }
+
+        analyzer['airports'] = m.newMap(numelements=14000,
+                                        maptype='PROBING',
+                                        cmpfunction=compareAirportIds)
+
+        analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAirportIds)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:newAnalyzer')
+
+
+def addAirportConnection(analyzer, lastflight, flight):
+    """
+    Adiciona los aeropuertos y vuelos al grafo como vértices y arcos entre ellos.
+
+    Los vértices tienen por nombre el identificador del aeropuerto
+    seguido del número de vuelo. Por ejemplo:
+
+    JFK-UA123
+
+    Si el aeropuerto sirve otro vuelo, se tiene: JFK-UA456
+    """
+    try:
+        origin = formatAirport(lastflight)
+        destination = formatAirport(flight)
+        cleanFlightDistance(lastflight, flight)
+        distance = float(flight['Distance']) - float(lastflight['Distance'])
+        distance = abs(distance)
+        addAirport(analyzer, origin)
+        addAirport(analyzer, destination)
+        addConnection(analyzer, origin, destination, distance)
+        addFlight(analyzer, flight)
+        addFlight(analyzer, lastflight)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addAirportConnection')
+
+
+def addAirport(analyzer, airportid):
+    """
+    Adiciona un aeropuerto como un vértice del grafo
+    """
+    try:
+        if not gr.containsVertex(analyzer['connections'], airportid):
+            gr.insertVertex(analyzer['connections'], airportid)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addAirport')
+
+
+def addFlight(analyzer, flight):
+    """
+    Agrega un vuelo a la lista de vuelos servidos en un aeropuerto específico
+    """
+    try:
+        airport_code = flight['ORIGEN']
+        entry = m.get(analyzer['airports'], airport_code)
+        if entry is None:
+            flight_list = lt.newList(cmpfunction=compareflights)
+            lt.addLast(flight_list, flight)
+            m.put(analyzer['airports'], airport_code, flight_list)
+        else:
+            flight_list = entry['value']
+            lt.addLast(flight_list, flight)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addFlight')
+
+
+def addRouteConnections(analyzer):
+    """
+    Por cada vértice (cada aeropuerto) se recorre la lista
+    de vuelos servidos en dicho aeropuerto y se crean
+    arcos entre ellos para representar la conexión entre vuelos
+    """
+    try:
+        airport_keys = m.keySet(analyzer['airports'])
+        for airport_code in lt.iterator(airport_keys):
+            flight_list = m.get(analyzer['airports'], airport_code)['value']
+            for i in range(lt.size(flight_list) - 1):
+                flight1 = lt.getElement(flight_list, i)
+                flight2 = lt.getElement(flight_list, i + 1)
+                addConnection(analyzer, formatAirport(flight1), formatAirport(flight2), 0)
+                addConnection(analyzer, formatAirport(flight2), formatAirport(flight1), 0)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addRouteConnections')
+
+
+def addConnection(analyzer, origin, destination, distance):
+    """
+    Adiciona una conexión entre dos aeropuertos
+    """
+    try:
+        edge = gr.getEdge(analyzer['connections'], origin, destination)
+        if edge is None:
+            gr.addEdge(analyzer['connections'], origin, destination, distance)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addConnection')
+
+def formatAirport(flight):
+    """
+    Formatea el nombre del vértice con el código del aeropuerto
+    seguido del número de vuelo.
+    """
+    name = flight['ORIGEN'] + '-'  # Usamos el código del aeropuerto como parte del nombre del vértice
+    name += flight['TIPO_VUELO']  # Usamos el tipo de vuelo como parte del nombre del vértice
+    return name
+
+def cleanFlightDistance(lastflight, flight):
+    """
+    En caso de que el archivo tenga un espacio en la
+    distancia, se reemplaza con cero.
+    """
+    if flight['TIEMPO_VUELO'] == '':
+        flight['TIEMPO_VUELO'] = 0
+    if lastflight['TIEMPO_VUELO'] == '':
+        lastflight['TIEMPO_VUELO'] = 0
+        
+def compareflights(flight1, flight2):
+    """
+    Compara dos vuelos por sus rutas
+    """
+    if flight1['TIPO_VUELO'] == flight2['TIPO_VUELO']:
+        return 0
+    elif flight1['TIPO_VUELO'] > flight2['TIPO_VUELO']:
+        return 1
+    else:
+        return -1
+    
+def compareAirportIds(airport_id, airport_info):
+    """
+    Compara dos aeropuertos por sus identificadores
+    """
+    airport_code = airport_info['NOMBRE']
+    if airport_id == airport_code:
+        return 0
+    elif airport_id > airport_code:
+        return 1
+    else:
+        return -1
 
 # Funciones para agregar informacion al modelo
 
