@@ -26,6 +26,7 @@ import time
 import csv
 import tracemalloc
 import os
+from DISClib.ADT import graph as gr
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -36,14 +37,14 @@ def new_controller():
     """
     Crea una instancia del modelo
     """
-    
     #TODO: Llamar la función del modelo que crea las estructuras de datos
-    pass
-
-
+    control = {'model':None}
+    control['model'] = model.newAnalyzer()
+    return control
+    
 # Funciones para la carga de datos
 
-def load_data(control, filename):
+def load_data(control):
     """
     Carga los datos del reto
     """
@@ -55,23 +56,94 @@ def load_data(control, filename):
     addRouteConnections crea conexiones entre diferentes vuelos
     servidos en un mismo aeropuerto.
     """
-    flights_file = cf.data_dir + flights_file
-    jobsFilename = os.path.join(cf.data_dir + 'airports-2022.csv')
-    input_file = csv.DictReader(open(jobsFilename, encoding='utf-8'),delimiter=';', restval='Unknown')
+    data_structs = control['model']
+    airportCharge = loadDataAirportCharge(data_structs)
+    airportComercial = loadDataAirportComercial(data_structs)
+    airportMilitar = loadDataAirportMilitar(data_structs)
+    flightCharge = loadDataFlightCharge(data_structs)
+    flightComercial = loadDataFlightComercial(data_structs)
+    flightMilitar = loadDataFlightMilitar(data_structs)
     
-    last_flight = None
-    for flight in input_file:
-        if last_flight is not None:
-            same_flight_type = last_flight['TIPO_VUELO'] == flight['TIPO_VUELO']
-            same_direction = last_flight['ORIGEN'] == flight['ORIGEN']
-            if same_flight_type and same_direction:
-                model.addAirportConnection(control, last_flight, flight)
-        last_flight = flight
-    model.addRouteConnections(control)
-    return control
-    # TODO: Realizar la carga de datos
-    pass
+    return airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar
+    
+#Funciones para cargar los aeropuertos.
+    
+def loadDataAirportCharge(data_structs):
+    '''
+    Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
+    '''
+    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
+    for data in input_file:
+        airportid = data['ICAO']
+        model.addAirportCharge(data_structs, airportid)
+    return model.data_size_vertex(data_structs['carga'])
+    
+def loadDataAirportComercial(data_structs):
+    '''
+    Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
+    '''
+    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
+    for data in input_file:
+        airportid = data['ICAO']
+        model.addAirportComercial(data_structs, airportid)
+    return model.data_size_vertex(data_structs['comercial'])
 
+def loadDataAirportMilitar(data_structs):
+    '''
+    Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
+    '''
+    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
+    for data in input_file:
+        airportid = data['ICAO']
+        model.addAirportMilitar(data_structs, airportid) 
+    return model.data_size_vertex(data_structs['militar'])
+        
+#Funciones para cargar los vuelos.
+
+def loadDataFlightCharge(data_structs):
+    '''
+    Lee el csv de los vuelos y aniade al grafo determinado los vuelos como arcos con el peso en tiempo.
+    '''
+    filename = os.path.join(cf.data_dir + 'fligths-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding='UTF-8'), delimiter=';', restkey='Unknown')
+    for data in input_file:
+        if data['TIPO_VUELO'] == 'AVIACION_CARGA':
+            vertexa = data['ORIGEN']
+            vertexb = data['DESTINO']
+            weight = data['TIEMPO_VUELO']
+            model.addFlightCharge(data_structs, vertexa, vertexb, weight)
+    return model.data_size_edges(data_structs['carga'])
+     
+def loadDataFlightComercial(data_structs):
+    '''
+    Lee el csv de los vuelos y aniade al grafo determinado los vuelos como arcos con el peso en tiempo.
+    '''
+    filename = os.path.join(cf.data_dir + 'fligths-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding='UTF-8'), delimiter=';', restkey='Unknown')
+    for data in input_file:
+        if data['TIPO_VUELO'] == 'AVIACION_COMERCIAL':
+            vertexa = data['ORIGEN']
+            vertexb = data['DESTINO']
+            weight = data['TIEMPO_VUELO']
+            model.addFlightComercial(data_structs, vertexa, vertexb, weight)
+    return model.data_size_edges(data_structs['comercial'])
+     
+def loadDataFlightMilitar(data_structs):
+    '''
+    Lee el csv de los vuelos y aniade al grafo determinado los vuelos como arcos con el peso en tiempo.
+    '''
+    filename = os.path.join(cf.data_dir + 'fligths-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding='UTF-8'), delimiter=';', restkey='Unknown')
+    for data in input_file:
+        if data['TIPO_VUELO'] == 'MILITAR':
+            vertexa = data['ORIGEN']
+            vertexb = data['DESTINO']
+            weight = data['TIEMPO_VUELO']
+            model.addFlightMilitar(data_structs, vertexa, vertexb, weight)
+    return model.data_size_edges(data_structs['militar'])
 
 # Funciones de ordenamiento
 

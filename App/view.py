@@ -45,8 +45,8 @@ def new_controller():
     """
         Se crea una instancia del controlador
     """
-    #TODO: Llamar la función del controlador donde se crean las estructuras de datos
-    pass
+    control = controller.new_controller()
+    return control
 
 
 def print_menu():
@@ -67,17 +67,14 @@ def load_data(control):
     """
     Carga los datos
     """
-    carga = load_data(control)
-    return carga
-    #TODO: Realizar la carga de datos
-    pass
+    airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar = controller.load_data(control)
+    return airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar
 
 
-def print_data(control, id):
+def print_data(control):
     """
-        Función que imprime un dato dado su ID
+        Función que imprime la carga de datos.
     """
-    #TODO: Realizar la función para imprimir un elemento
     pass
 
 def print_req_1(control):
@@ -150,7 +147,7 @@ control = new_controller()
 default_limit = 1000
 
 # main del reto
-if __name__ == "__main__":
+def menu_cycle():
     """
     Menu principal
     """
@@ -161,7 +158,15 @@ if __name__ == "__main__":
         inputs = input('Seleccione una opción para continuar\n')
         if int(inputs) == 1:
             print("Cargando información de los archivos ....\n")
-            data = load_data(control)
+            airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar = load_data(control)
+            print('Se cargaron {0} aeropuertos en el grafo de vuelos de carga'.format(airportCharge))
+            print('Se cargaron {0} aeropuertos en el grafo de vuelos comercial'.format(airportComercial))
+            print('Se cargaron {0} aeropuertosen el grafo de vuelos militares'.format(airportMilitar))
+            print('Se cargaron {0} vuelos de carga'.format(flightCharge))
+            print('Se cargaron {0} vuelos comerciales'.format(flightComercial))
+            print('Se cargaron {0} vuelos militares'.format(flightMilitar))
+            total_vuelos = flightCharge + flightComercial + flightMilitar
+            print('En total hay {0}'.format(total_vuelos))
             
         elif int(inputs) == 2:
             print_req_1(control)

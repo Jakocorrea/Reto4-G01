@@ -70,115 +70,108 @@ def newAnalyzer():
     """
     try:
         analyzer = {
-            'airports': None,
-            'connections': None,
-            'components': None,
-            'paths': None
+            'airport': None,
+            'comercial': None,
+            'carga': None,
+            'militar': None,
         }
-
-        analyzer['airports'] = m.newMap(numelements=14000,
+        
+        analyzer['airport'] = mp.newMap(numelements=1000,
                                         maptype='PROBING',
-                                        cmpfunction=compareAirportIds)
-
-        analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST',
-                                              directed=True,
-                                              size=14000,
-                                              cmpfunction=compareAirportIds)
+                                        loadfactor=0.5,
+                                        cmpfunction=None)
+        
+        analyzer['comercial'] = gr.newGraph(datastructure='ADJ_LIST', 
+                                            directed=True,
+                                            size=3022,
+                                            cmpfunction=None)
+        
+        analyzer['carga'] = gr.newGraph(datastructure='ADJ_LIST', 
+                                            directed=True,
+                                            size=3022,
+                                            cmpfunction=None)
+        
+        analyzer['militar'] = gr.newGraph(datastructure='ADJ_LIST', 
+                                            directed=True,
+                                            size=3022,
+                                            cmpfunction=None)
+    
         return analyzer
+        
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
 
+#Funciones para cargar vertices.
 
-def addAirportConnection(analyzer, lastflight, flight):
-    """
-    Adiciona los aeropuertos y vuelos al grafo como vértices y arcos entre ellos.
-
-    Los vértices tienen por nombre el identificador del aeropuerto
-    seguido del número de vuelo. Por ejemplo:
-
-    JFK-UA123
-
-    Si el aeropuerto sirve otro vuelo, se tiene: JFK-UA456
-    """
-    try:
-        origin = formatAirport(lastflight)
-        destination = formatAirport(flight)
-        cleanFlightDistance(lastflight, flight)
-        distance = float(flight['Distance']) - float(lastflight['Distance'])
-        distance = abs(distance)
-        addAirport(analyzer, origin)
-        addAirport(analyzer, destination)
-        addConnection(analyzer, origin, destination, distance)
-        addFlight(analyzer, flight)
-        addFlight(analyzer, lastflight)
-        return analyzer
-    except Exception as exp:
-        error.reraise(exp, 'model:addAirportConnection')
-
-
-def addAirport(analyzer, airportid):
+def addAirportCharge(analyzer, airportid):
     """
     Adiciona un aeropuerto como un vértice del grafo
     """
     try:
-        if not gr.containsVertex(analyzer['connections'], airportid):
-            gr.insertVertex(analyzer['connections'], airportid)
+        if not gr.containsVertex(analyzer['carga'], airportid):
+            gr.insertVertex(analyzer['carga'], airportid)
+        
         return analyzer
     except Exception as exp:
-        error.reraise(exp, 'model:addAirport')
+        error.reraise(exp, 'model:addAirportCharge')
 
-
-def addFlight(analyzer, flight):
+def addAirportComercial(analyzer, airportid):
     """
-    Agrega un vuelo a la lista de vuelos servidos en un aeropuerto específico
+    Adiciona un aeropuerto como un vértice del grafo
     """
     try:
-        airport_code = flight['ORIGEN']
-        entry = m.get(analyzer['airports'], airport_code)
-        if entry is None:
-            flight_list = lt.newList(cmpfunction=compareflights)
-            lt.addLast(flight_list, flight)
-            m.put(analyzer['airports'], airport_code, flight_list)
-        else:
-            flight_list = entry['value']
-            lt.addLast(flight_list, flight)
+        if not gr.containsVertex(analyzer['comercial'], airportid):
+            gr.insertVertex(analyzer['comercial'], airportid)
         return analyzer
     except Exception as exp:
-        error.reraise(exp, 'model:addFlight')
+        error.reraise(exp, 'model:addAirportComercial')
 
 
-def addRouteConnections(analyzer):
+def addAirportMilitar(analyzer, airportid):
     """
-    Por cada vértice (cada aeropuerto) se recorre la lista
-    de vuelos servidos en dicho aeropuerto y se crean
-    arcos entre ellos para representar la conexión entre vuelos
+    Adiciona un aeropuerto como un vértice del grafo
     """
     try:
-        airport_keys = m.keySet(analyzer['airports'])
-        for airport_code in lt.iterator(airport_keys):
-            flight_list = m.get(analyzer['airports'], airport_code)['value']
-            for i in range(lt.size(flight_list) - 1):
-                flight1 = lt.getElement(flight_list, i)
-                flight2 = lt.getElement(flight_list, i + 1)
-                addConnection(analyzer, formatAirport(flight1), formatAirport(flight2), 0)
-                addConnection(analyzer, formatAirport(flight2), formatAirport(flight1), 0)
+        if not gr.containsVertex(analyzer['militar'], airportid):
+            gr.insertVertex(analyzer['militar'], airportid)
+            
         return analyzer
     except Exception as exp:
-        error.reraise(exp, 'model:addRouteConnections')
+        error.reraise(exp, 'model:addAirportMilitar')
+        
+#Funciones para cargar vuelos.
 
-
-def addConnection(analyzer, origin, destination, distance):
-    """
-    Adiciona una conexión entre dos aeropuertos
-    """
+def addFlightCharge(analyzer, vertexa, vertexb, weight):
+    '''
+    Adiciona un vuelo de carga a los aeropuertos.
+    '''
     try:
-        edge = gr.getEdge(analyzer['connections'], origin, destination)
-        if edge is None:
-            gr.addEdge(analyzer['connections'], origin, destination, distance)
-        return analyzer
+        gr.addEdge(analyzer['carga'], vertexa, vertexb, weight)
+        
     except Exception as exp:
-        error.reraise(exp, 'model:addConnection')
+        error.reraise(exp, 'model:addFlightCharge')
 
+def addFlightComercial(analyzer, vertexa, vertexb, weight):
+    '''
+    Adiciona un vuelo comercial a los aeropuertos.
+    '''
+    try:
+        gr.addEdge(analyzer['comercial'], vertexa, vertexb, weight)
+        
+    except Exception as exp:
+        error.reraise(exp, 'model:addFlightComercial')
+
+def addFlightMilitar(analyzer, vertexa, vertexb, weight):
+    '''
+    Adiciona un vuelo militar a los aeropuertos.
+    '''
+    try:
+        gr.addEdge(analyzer['militar'], vertexa, vertexb, weight)
+        
+    except Exception as exp:
+        error.reraise(exp, 'model:addFlightMilitar')
+    
+#Funciones de comparacion.
 def formatAirport(flight):
     """
     Formatea el nombre del vértice con el código del aeropuerto
@@ -251,13 +244,18 @@ def get_data(data_structs, id):
     pass
 
 
-def data_size(data_structs):
+def data_size_vertex(data_structs):
     """
-    Retorna el tamaño de la lista de datos
+    Retorna el numero de vertices en un grafo.
     """
     #TODO: Crear la función para obtener el tamaño de una lista
-    pass
+    return gr.numVertices(data_structs)
 
+def data_size_edges(data_structs):
+    '''
+    Retorna el numero de arcos en un grafo.
+    '''
+    return gr.numEdges(data_structs)
 
 def req_1(data_structs):
     """
