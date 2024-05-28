@@ -159,14 +159,12 @@ def menu_cycle():
         if int(inputs) == 1:
             print("Cargando información de los archivos ....\n")
             airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar = load_data(control)
-            print('Se cargaron {0} aeropuertos en el grafo de vuelos de carga'.format(airportCharge))
-            print('Se cargaron {0} aeropuertos en el grafo de vuelos comercial'.format(airportComercial))
-            print('Se cargaron {0} aeropuertosen el grafo de vuelos militares'.format(airportMilitar))
-            print('Se cargaron {0} vuelos de carga'.format(flightCharge))
-            print('Se cargaron {0} vuelos comerciales'.format(flightComercial))
-            print('Se cargaron {0} vuelos militares'.format(flightMilitar))
+            print('Se cargaron {0} aeropuertos en los 3 grafos de los distintos tipos de vuelo.'.format(airportCharge))
+            print('Se cargaron {0} vuelos de carga.'.format(flightCharge))
+            print('Se cargaron {0} vuelos comerciales.'.format(flightComercial))
+            print('Se cargaron {0} vuelos militares.'.format(flightMilitar))
             total_vuelos = flightCharge + flightComercial + flightMilitar
-            print('En total hay {0}'.format(total_vuelos))
+            print('En total hay {0} vuelos.'.format(total_vuelos))
             
         elif int(inputs) == 2:
             print_req_1(control)

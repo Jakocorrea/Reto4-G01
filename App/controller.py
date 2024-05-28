@@ -57,9 +57,7 @@ def load_data(control):
     servidos en un mismo aeropuerto.
     """
     data_structs = control['model']
-    airportCharge = loadDataAirportCharge(data_structs)
-    airportComercial = loadDataAirportComercial(data_structs)
-    airportMilitar = loadDataAirportMilitar(data_structs)
+    airportCharge, airportComercial, airportMilitar= loadDataAirports(data_structs)
     flightCharge = loadDataFlightCharge(data_structs)
     flightComercial = loadDataFlightComercial(data_structs)
     flightMilitar = loadDataFlightMilitar(data_structs)
@@ -68,7 +66,7 @@ def load_data(control):
     
 #Funciones para cargar los aeropuertos.
     
-def loadDataAirportCharge(data_structs):
+def loadDataAirports(data_structs):
     '''
     Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
     '''
@@ -76,31 +74,12 @@ def loadDataAirportCharge(data_structs):
     input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
     for data in input_file:
         airportid = data['ICAO']
-        model.addAirportCharge(data_structs, airportid)
-    return model.data_size_vertex(data_structs['carga'])
-    
-def loadDataAirportComercial(data_structs):
-    '''
-    Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
-    '''
-    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
-    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
-    for data in input_file:
-        airportid = data['ICAO']
+        model.addAirxportCharge(data_structs, airportid)
         model.addAirportComercial(data_structs, airportid)
-    return model.data_size_vertex(data_structs['comercial'])
+        model.addAirportMilitar(data_structs, airportid)
 
-def loadDataAirportMilitar(data_structs):
-    '''
-    Lee el csv de los aeropuertos y aniade al grafo determinado los aeropuertos como vertices con el ICAO.
-    '''
-    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
-    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
-    for data in input_file:
-        airportid = data['ICAO']
-        model.addAirportMilitar(data_structs, airportid) 
-    return model.data_size_vertex(data_structs['militar'])
-        
+    return model.data_size_vertex(data_structs['carga']), model.data_size_vertex(data_structs['comercial']),  model.data_size_vertex(data_structs['militar'])
+    
 #Funciones para cargar los vuelos.
 
 def loadDataFlightCharge(data_structs):
