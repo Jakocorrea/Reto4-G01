@@ -103,6 +103,19 @@ def newAnalyzer():
 
 #Funciones para cargar vertices.
 
+def addAirportNode(analyzer, data):
+    '''
+    Vuelve cada aeropuerto una tabla de hash con llave el codigo ICAO.
+    '''
+    if not mp.contains(analyzer['airport'], data['ICAO']):
+        newlst = lt.newList()
+        lt.addLast(newlst, data)
+        mp.put(analyzer['airport'], data['ICAO'], newlst)
+    else:
+        lst = me.getValue(mp.get(analyzer['airport'], data['ICAO']))
+        lt.addLast(lst, data)
+    
+
 def addAirportCharge(analyzer, airportid):
     """
     Adiciona un aeropuerto como un vértice del grafo
@@ -256,6 +269,12 @@ def data_size_edges(data_structs):
     Retorna el numero de arcos en un grafo.
     '''
     return gr.numEdges(data_structs)
+
+def data_size_map(data_structs):
+    '''
+    Retorna el tamanio de un mapa.
+    '''
+    return mp.size(data_structs)
 
 def req_1(data_structs):
     """

@@ -27,6 +27,7 @@ import csv
 import tracemalloc
 import os
 from DISClib.ADT import graph as gr
+from DISClib.ADT import map as mp
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -57,13 +58,26 @@ def load_data(control):
     servidos en un mismo aeropuerto.
     """
     data_structs = control['model']
+    airports = loadDataAirportsHash(data_structs)
     airportCharge, airportComercial, airportMilitar= loadDataAirports(data_structs)
     flightCharge = loadDataFlightCharge(data_structs)
     flightComercial = loadDataFlightComercial(data_structs)
     flightMilitar = loadDataFlightMilitar(data_structs)
-    
+
     return airportCharge, airportComercial, airportMilitar, flightCharge, flightComercial, flightMilitar
-    
+
+#Funcion para convertir los nodos a tablas de hash.
+
+def loadDataAirportsHash(data_structs):
+    '''
+    Carga los datos de los eropuertos para converretirlos en una tabla de hash.
+    '''
+    filename = os.path.join(cf.data_dir + 'airports-2022.csv')
+    input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
+    for data in input_file:
+        model.addAirportNode(data_structs, data)
+    return model.data_size_map(data_structs['airport'])
+  
 #Funciones para cargar los aeropuertos.
     
 def loadDataAirports(data_structs):
