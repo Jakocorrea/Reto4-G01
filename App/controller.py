@@ -74,7 +74,7 @@ def loadDataAirports(data_structs):
     input_file = csv.DictReader(open(filename, encoding= 'utf-8'), delimiter=';', restval='Unknown')
     for data in input_file:
         airportid = data['ICAO']
-        model.addAirxportCharge(data_structs, airportid)
+        model.addAirportCharge(data_structs, airportid)
         model.addAirportComercial(data_structs, airportid)
         model.addAirportMilitar(data_structs, airportid)
 
